@@ -30,14 +30,17 @@ void insertMulSnippet(BPatch_image *binaryImage,
 
   // create add snippet using the first available register
   BPatch_register r1 = availableRegs[0];
+  BPatch_register r2 = availableRegs[1];
 
   // if (availableRegs.size() > 1)
   //   r2 = availableRegs[1];
 
   std::cout << "r1 = " << r1.name() << '\n';
+  std::cout << "r2 = " << r2.name() << '\n';
 
   BPatch_registerExpr op1(r1);
-  BPatch_constExpr op2(0xabc); // TODO : change this to reg operand for SOP2
+  BPatch_registerExpr op2(r2);
+  // BPatch_constExpr op2(0xabc); // TODO : change this to reg operand for SOP2
   BPatch_arithExpr mulExpr(BPatch_times, op1, op2);
 
   bool success = addressSpace->insertSnippet(mulExpr, insertionPoints);
@@ -62,7 +65,7 @@ int main(int argc, char **argv) {
   assert(binaryImage->getProcedures(functions));
 
   for (auto *function : functions) {
-    std::vector<BPatch_point *> *entryPoints = function->findPoint(BPatch_exit);
+    std::vector<BPatch_point *> *entryPoints = function->findPoint(BPatch_entry);
     insertMulSnippet(binaryImage, *entryPoints);
   }
 
