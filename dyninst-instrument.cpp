@@ -25,8 +25,8 @@ void createAndInsertMulSnippet(BPatch_point *point) {
   std::cout << "r2 = " << r2.name() << '\n';
 
   BPatch_registerExpr op1(r1);
-  // BPatch_constExpr op2(0xabc);
-  BPatch_registerExpr op2(r2);
+  BPatch_constExpr op2(0xabc);
+  // BPatch_reisterExpr op2(r2);
   BPatch_arithExpr mulExpr(BPatch_times, op1, op2);
 
   BPatch_addressSpace *addressSpace = point->getAddressSpace();
