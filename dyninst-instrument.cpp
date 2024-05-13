@@ -11,18 +11,27 @@
 using namespace std;
 using namespace Dyninst;
 
-void createAndInsertMulSnippet(BPatch_point *point) {
+enum SnippetKind {
+  MulSnippet,
+  LoadSnippet,
+  StoreSnippet,
+  IfSnippet,
+  WhileSnippet,
+};
+
+void insertMulSnippet(BPatch_point *point) {
   std::vector<BPatch_register> liveRegs;
   if (!point->getLiveRegisters(liveRegs)) {
     std::cout << "No registers available for instrumentation.\n";
     return;
   }
+  // inspecting and toying with live regs
 
   std::cout << "#live regs : " << liveRegs.size() << '\n';
   BPatch_register r1 = liveRegs[0];
-  BPatch_register r2 = r1;
+  // BPatch_register r2 = r1;
   std::cout << "r1 = " << r1.name() << '\n';
-  std::cout << "r2 = " << r2.name() << '\n';
+  // std::cout << "r2 = " << r2.name() << '\n';
 
   BPatch_registerExpr op1(r1);
   BPatch_constExpr op2(0xabc);
@@ -37,19 +46,71 @@ void createAndInsertMulSnippet(BPatch_point *point) {
   }
 }
 
-void insertMulSnippets(BPatch_image *binaryImage,
-                      std::vector<BPatch_point *> &insertionPoints) {
+void insertLoadSnippet(BPatch_point *point) {}
+
+void insertStoreSnippet(BPatch_point *point) {}
+
+void insertIfSnippet(BPatch_point *point) {}
+
+void insertWhileSnippet(BPatch_point *point) {}
+
+SnippetKind getSnippetKind(const char *str) {
+  std::cout << str << '\n';
+  if (std::string(str) == "-mul")
+    return MulSnippet;
+  else if (str == "-load")
+    return LoadSnippet;
+  else if (str == "-store")
+    return StoreSnippet;
+  else if (str == "-if")
+    return IfSnippet;
+  else if (str == "-while")
+    return WhileSnippet;
+  else {
+    std::cerr << "Invalid snippet kind\n";
+    exit(2);
+  }
+}
+
+void insertSnippet(SnippetKind sk,
+                   std::vector<BPatch_point *> &insertionPoints) {
+  // The compiler will probably do loop switching here :P
   for (size_t i = 0; i < insertionPoints.size(); ++i) {
-    createAndInsertMulSnippet(insertionPoints[i]);
+    switch (sk) {
+    case MulSnippet: {
+      insertMulSnippet(insertionPoints[i]);
+      break;
+    }
+    case LoadSnippet: {
+      insertLoadSnippet(insertionPoints[i]);
+      break;
+    }
+    case StoreSnippet: {
+      insertStoreSnippet(insertionPoints[i]);
+      break;
+    }
+    case IfSnippet: {
+      insertIfSnippet(insertionPoints[i]);
+      break;
+    }
+    case WhileSnippet: {
+      insertWhileSnippet(insertionPoints[i]);
+      break;
+    }
+    default:
+      std::cerr << "invalid snippet kind!\n";
+      break;
+    }
   }
 }
 
 int main(int argc, char **argv) {
-  assert(argc == 2);
+  assert(argc == 3);
+  SnippetKind snippetKind = getSnippetKind(argv[1]);
 
   BPatch BPatch;
+  const char *binaryPath = argv[2];
 
-  const char *binaryPath = argv[1];
   BPatch_binaryEdit *binary = BPatch.openBinary(binaryPath);
   assert(binary);
 
@@ -61,7 +122,7 @@ int main(int argc, char **argv) {
 
   for (auto *function : functions) {
     std::vector<BPatch_point *> *entryPoints = function->findPoint(BPatch_entry);
-    insertMulSnippets(binaryImage, *entryPoints);
+    insertSnippet(snippetKind, *entryPoints);
   }
 
   std::string newPath = std::string(argv[1]) + "-instr";
