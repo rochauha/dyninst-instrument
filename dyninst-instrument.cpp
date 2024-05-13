@@ -7,6 +7,7 @@
 #include "BPatch_function.h"
 #include "BPatch_point.h"
 #include "BPatch_process.h"
+#include "registers/MachRegister.h"
 
 using namespace std;
 using namespace Dyninst;
@@ -20,25 +21,16 @@ enum SnippetKind {
 };
 
 void insertMulSnippet(BPatch_point *point) {
-  std::vector<BPatch_register> liveRegs;
-  if (!point->getLiveRegisters(liveRegs)) {
-    std::cout << "No registers available for instrumentation.\n";
-    return;
-  }
-  // inspecting and toying with live regs
+  BPatch_addressSpace *addressSpace = point->getAddressSpace();
+  std::vector<BPatch_register> allRegs;
+  assert(addressSpace->getRegisters(allRegs) && "Must get all regs");
 
-  std::cout << "#live regs : " << liveRegs.size() << '\n';
-  BPatch_register r1 = liveRegs[0];
-  // BPatch_register r2 = r1;
-  std::cout << "r1 = " << r1.name() << '\n';
-  // std::cout << "r2 = " << r2.name() << '\n';
+  BPatch_register r1 = allRegs[0];
 
   BPatch_registerExpr op1(r1);
   BPatch_constExpr op2(0xabc);
-  // BPatch_reisterExpr op2(r2);
   BPatch_arithExpr mulExpr(BPatch_times, op1, op2);
 
-  BPatch_addressSpace *addressSpace = point->getAddressSpace();
   BPatchSnippetHandle *handle = addressSpace->insertSnippet(mulExpr, *point);
 
   if (!handle) {
@@ -55,7 +47,6 @@ void insertIfSnippet(BPatch_point *point) {}
 void insertWhileSnippet(BPatch_point *point) {}
 
 SnippetKind getSnippetKind(const char *str) {
-  std::cout << str << '\n';
   if (std::string(str) == "-mul")
     return MulSnippet;
   else if (str == "-load")
