@@ -7,7 +7,7 @@
 #include "BPatch_function.h"
 #include "BPatch_point.h"
 #include "BPatch_process.h"
-#include "registers/MachRegister.h"
+// #include "registers/MachRegister.h"
 
 using namespace std;
 using namespace Dyninst;
@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
     insertSnippet(snippetKind, *entryPoints);
   }
 
-  std::string newPath = std::string(argv[1]) + "-instr";
+  std::string newPath = std::string(argv[2]) + "-instr";
   if (!binary->writeFile(newPath.c_str())) {
     std::cout << "Rewriting binary failed\n";
   }
