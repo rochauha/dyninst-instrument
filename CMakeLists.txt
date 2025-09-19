@@ -37,8 +37,20 @@ target_link_libraries(demo-instrument PRIVATE
 target_compile_definitions(demo-instrument PRIVATE ${DYNINST_Boost_DEFINITIONS})
 target_link_directories(demo-instrument PRIVATE ${DYNINST_Boost_LIBRARY_DIRS})
 
+
 add_executable(dyninst-instrument dyninst-instrument.cpp)
 target_link_libraries(dyninst-instrument Dyninst::dyninstAPI)
 
 
+add_executable(endpgm-instrument endpgm-instrument.cpp)
 
+target_include_directories(endpgm-instrument PRIVATE
+  ${DYNINST_INCLUDE_DIR}
+  ${DYNINST_Boost_INCLUDE_DIRS}
+  ${DYNINST_TBB_INCLUDE_DIRS}
+)
+
+target_link_libraries(endpgm-instrument PRIVATE
+  Dyninst::symtabAPI
+  Dyninst::dyninstAPI
+)
