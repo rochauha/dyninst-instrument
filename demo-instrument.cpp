@@ -6,6 +6,7 @@
 #include "BPatch_flowGraph.h"
 #include "BPatch_function.h"
 #include "BPatch_point.h"
+#include "BPatch_snippet.h"
 
 using namespace std;
 using namespace Dyninst;
@@ -50,11 +51,10 @@ void insertBasicBlockCounters(BPatch_function *function) {
   // Insert correspnonding assignment at beginning of the basic block
   for (int i = 0; i < basicBlocks.size(); ++i) {
     BPatch_constExpr one(0x1);
-    BPatch_arithExpr addExpr(BPatch_plus, *(bbCounters[i]), one);
-    BPatch_arithExpr assignExpr(BPatch_assign, *(bbCounters[i]), addExpr);
+    BPatch_atomicOperationStmt atomicAddStmt(BPatch_plus, *(bbCounters[i]), one);
 
     BPatchSnippetHandle *handle = addressSpace->insertSnippet(
-        assignExpr, *(bbEntryPoints[i]), BPatch_callBefore);
+        atomicAddStmt, *(bbEntryPoints[i]), BPatch_callBefore);
     assert(handle);
   }
 }
